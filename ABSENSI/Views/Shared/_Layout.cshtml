@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Rumah di Bali17</title>
+    @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/fullCalendar")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/moment")
+    @if (!String.IsNullOrWhiteSpace(ViewBag.header))
+    {
+        @Html.Partial(((String)ViewBag.customCss))
+    }
+</head>
+<body>
+    @if (!String.IsNullOrWhiteSpace(ViewBag.header))
+    {
+        @Html.Partial(((String)ViewBag.header))
+    }
+
+    @RenderBody()
+    
+    @if (!String.IsNullOrWhiteSpace(ViewBag.footer))
+    {
+        @Html.Partial(((String)ViewBag.footer))
+    }
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/sweetAlertCdn")
+    @Scripts.Render("~/bundles/fullcalendar")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

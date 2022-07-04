@@ -1,0 +1,470 @@
+﻿@model ABSENSI.ViewModel.UserViewModel
+
+@{
+    ViewBag.Title = "Admin";
+}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var Calendar = FullCalendar.Calendar;
+        var Draggable = FullCalendar.Draggable;
+
+        var containerEl = document.getElementById('external-events');
+        var calendarEl = document.getElementById('calendar');
+        var checkbox = document.getElementById('drop-remove');
+
+        new Draggable(containerEl, {
+            itemSelector: '.fc-event',
+            eventData: function (eventEl) {
+                return {
+                    id: eventEl.id,
+                    title: eventEl.innerText
+                };
+            }
+        });
+
+        var calendar = new Calendar(calendarEl, {
+            timeZone: 'local',
+            dayMaxEventRows: 2,
+            eventSources: [
+
+                // your event source
+                {
+                    url: '@Url.Action("getEvent", "Admin")'
+                }
+
+                // any other sources...
+
+            ],
+            eventClassNames: function (arg) {
+                if (arg.event.extendedProps.attendance) {
+                    return ['event_closed_pass']
+                }
+                else if (!arg.event.extendedProps.attendance && arg.event.extendedProps.is_past) {
+                    return ['event_closed_loss']
+                }
+                else if (arg.event.extendedProps.attendance || arg.event.extendedProps.is_past) {
+                    return ['event_closed']
+                } else {
+                    return ['event_normal']
+                }
+            },
+            @*events: function (start, end, timezone, callback) {
+                $.ajax({
+                    url: '@Url.Action("getEvent", "Admin")',
+                    type: "GET",
+                    dataType: "JSON",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result) {
+                        console.log(result);
+                        var events = [];
+
+                        $.each(result.desc, function (i, data) {
+                            events.push(
+                                {
+                                    id: data.user_schedule_id,
+                                    title: 'pio',
+                                    start: moment(data.schedule).format('YYYY-MM-DD'),
+                                    end: moment(data.schedule).format('YYYY-MM-DD')
+                                });
+                        });
+
+                        callback(events);
+                    }
+                });
+            },*@
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth, timeGridDay'
+            },
+            editable: true,
+            droppable: true, // this allows things to be dropped onto the calendar
+            drop: function (info) {
+                //// is the "remove after drop" checkbox checked?
+                //if (checkbox.checked) {
+                //    // if so, remove the element from the "Draggable Events" list
+                //    info.draggedEl.parentNode.removeChild(info.draggedEl);
+                //}
+                $.ajax({
+                    url: '@Url.Action("insertEvent", "Admin")',
+                    type: "POST",
+                    dataType: "JSON",
+                    data: JSON.stringify({
+                        user_id: info.draggedEl.id,
+                        date: info.dateStr
+                    }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result) {
+                        if (result.code == -1) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: result.desc
+                            });
+
+                            calendar.getEventById(info.draggedEl.id).remove();
+                        }
+                        calendar.removeAllEvents();
+                        calendar.refetchEvents();
+                    }
+                });
+            },
+            eventClick: function (info) {
+                //calendar.getEventById(info.Modelvent.id).remove();
+                $(".eventTitleModal").html(info.event.title);
+                $("#eventID").val(info.event.id);
+                $("#eventModal").modal("show");
+            },
+            dateClick: function (info) {
+                $("#attendanceDate").val(info.dateStr);
+                $("#attendanceReportModal").modal("show");
+            },
+            eventResize: function (info) {
+                //alert(info.event.title + " end is now " + info.event.end);
+
+                //if (!confirm("is this okay?")) {
+                //    info.revert();
+                //}
+
+                //and here is where we gonna save it
+                let user_schedule_id = info.event.id;
+                let date_start = info.event.start;
+                let date_end = info.event.end;
+
+                console.log(date_start);
+
+                $.ajax({
+                    url: '@Url.Action("updateEvent", "Admin")',
+                    type: "POST",
+                    dataType: "JSON",
+                    data: JSON.stringify({
+                        user_schedule_id: user_schedule_id,
+                        date_start: date_start,
+                        date_end: date_end
+                    }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result) {
+                    }
+                });
+
+            },
+            eventDrop: function (info) {
+                let user_schedule_id = info.event.id;
+                let date_start = info.event.start;
+                let date_end = info.event.start;
+
+                //here we will save the start date, maybe update it
+                $.ajax({
+                    url: '@Url.Action("updateEvent", "Admin")',
+                    type: "POST",
+                    dataType: "JSON",
+                    data: JSON.stringify({
+                        user_schedule_id: user_schedule_id,
+                        date_start: date_start,
+                        date_end: date_end
+                    }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result) {
+                    }
+                });
+            }
+        });
+
+        calendar.render();
+
+        $("#btnRemoveEvent").click(function () {
+            $.ajax({
+                url: '@Url.Action("deleteEvent", "Admin")',
+                type: "POST",
+                dataType: "JSON",
+                data: JSON.stringify({
+                    user_schedule_id: $("#eventID").val()
+                }),
+                contentType: "application/json; charset=utf-8",
+                success: function (result) {
+                    if (result.code == -1) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: result.desc
+                        });
+                    }
+                    else {
+                        calendar.getEventById($("#eventID").val()).remove();
+                    }
+                }
+            });
+        })
+
+        $(".fc-event").click(function () {
+            $("#userID").val($(this).attr("id"));
+            //$("#employeeDeleteModal").modal("show");
+            //$("#employeeMenuModal").modal("show");
+
+            //let url = $("#view_employee").attr("href");
+            //$("#view_employee").attr("href", url + "?id=" + $("#userID").val());
+        })
+
+        @*$("#btnRemoveEmployee").click(function () {
+            let user_id = $("#employeeID").val();
+            $.ajax({
+                url: '@Url.Action("deleteUser", "Admin")',
+                type: "POST",
+                dataType: "JSON",
+                data: JSON.stringify({
+                    user_id: user_id
+                }),
+                contentType: "application/json; charset=utf-8",
+                success: function (result) {
+                    if (result.code == -1) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: result.desc
+                        });
+                    }
+                    else {
+                        calendar.removeAllEvents();
+                        calendar.refetchEvents();
+                    }
+                }
+            });
+        })*@
+
+        //var calendar = new FullCalendar.Calendar(calendarEl, {
+        //    selectable: true,
+        //    headerToolbar: {
+        //        left: 'prev,next today',
+        //        center: 'title',
+        //        right: 'dayGridMonth'
+        //        //right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        //    },
+        //    dateClick: function (info) {
+        //        //alert('clicked ' + info.dateStr);
+        //        let date = info.dateStr;
+        //        calendar.addEvent({
+        //            title: 'dynamic event',
+        //            start: date,
+        //            allDay: true
+        //        });
+        //    },
+        //    select: function (info) {
+        //        alert('selected ' + info.startStr + ' to ' + info.endStr);
+        //    }
+        //});
+        //calendar.render();
+    });
+</script>
+
+<div class="container-fluid">
+    <div class="row no-gutters">
+        <div id='external-events' class="col-md-3 p-lg-3 pr-3">
+            <button type="button" class="btn btn-info m-2" data-bs-toggle="modal" data-bs-target="#employeeModal"><i class="fa fa-plus"></i></button>
+
+            @foreach (var u in Model.userList)
+            {
+                <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event m-2 ps-3' id="@u.user_id" data-bs-toggle="modal" data-bs-target="#employeeDeleteModal">
+                    <p class='fc-event-main'>@u.fullname</p>
+                </div>
+            }
+
+            @*<p>
+                    <input type='checkbox' id='drop-remove' />
+                    <label for='drop-remove'>remove after drop</label>
+                </p>*@
+        </div>
+
+        <div class="col-md-9">
+            <div id='calendar'></div>
+        </div>
+    </div>
+</div>
+
+<!--<div class="modal fade" id="employeeMenuModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title eventTitleModal" id="exampleModalLabel">Employee Menu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-2 col-12 mx-auto">-->
+@*<a class="btn btn-primary" href="@Url.Action("Index","Employee")" id="view_employee">View</a>*@
+<!--<button class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#employeeDeleteModal">Delete</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>-->
+
+@using (Html.BeginForm("printReport", "Admin",
+                                new { ReturnUrl = ViewBag.ReturnUrl },
+                                FormMethod.Post, new { @class = "row needs-validation", @novalidate = "true" }))
+{
+    <div class="modal fade" id="attendanceReportModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title eventTitleModal" id="exampleModalLabel">Attendance Report Menu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-grid gap-2 col-12 mx-auto">
+                        @Html.EditorFor(model => model.user.inserted_at, new { htmlAttributes = new { @class = "form-control", @required = "required", @id = "attendanceDate" } })
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Print</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@using (Html.BeginForm("deleteUser", "Admin",
+                                new { ReturnUrl = ViewBag.ReturnUrl },
+                                FormMethod.Post, new { @class = "row needs-validation", @novalidate = "true" }))
+{
+    <div class="modal fade" id="employeeDeleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title eventTitleModal" id="exampleModalLabel">Delete Employee</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        @Html.HiddenFor(model => model.user.user_id, new { @class = "form-control", @required = "required", @id = "userID" })
+                        <p>Are you sure want to delete this employee ?</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Remove</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title eventTitleModal" id="exampleModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="hidden" class="form-control" placeholder="ID" aria-label="ID" id="eventID">
+                    <p>Are you sure want to delete this schedule ?</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnRemoveEvent" data-bs-dismiss="modal">Remove</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.BeginForm("insertEmployee", "Admin",
+                                new { ReturnUrl = ViewBag.ReturnUrl },
+                                FormMethod.Post, new { @class = "row needs-validation", @novalidate = "true" }))
+{
+    <div class="modal fade" id="employeeModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Add New Employee</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        @Html.LabelFor(model => model.user.username, "Username", htmlAttributes: new { @class = "form-label" })
+                        @Html.EditorFor(model => model.user.username, new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+                        <div class="invalid-feedback">
+                            Please input username!
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        @Html.LabelFor(model => model.user.fullname, "Full Name", htmlAttributes: new { @class = "form-label" })
+                        @Html.EditorFor(model => model.user.fullname, new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+                        <div class="invalid-feedback">
+                            Please input fullname!
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        @Html.LabelFor(model => model.user.password, "Password", htmlAttributes: new { @class = "form-label" })
+                        @Html.PasswordFor(model => model.user.password, new { @class = "form-control", @required = "required" })
+                        <div class="invalid-feedback">
+                            Please input password!
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        @Html.LabelFor(model => model.user.is_admin, "Is Admin", htmlAttributes: new { @class = "form-label" })
+                        @Html.CheckBoxFor(model => model.user.is_admin)
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="btnRemoveEvent">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Example starter JavaScript for disabling form submissions if there are invalid fields
+        (function () {
+            'use strict'
+
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
+
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+
+        var x = document.getElementById("demo");
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else {
+                x.innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showPosition(position) {
+            x.innerHTML = "Latitude: " + position.coords.latitude +
+                "<br>Longitude: " + position.coords.longitude;
+        }
+
+        let message = '@TempData["message"]';
+        if (message != "") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Attendace Failed',
+                text: message
+            })
+        }
+    </script>
+}

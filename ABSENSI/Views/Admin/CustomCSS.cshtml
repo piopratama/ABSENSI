@@ -1,0 +1,84 @@
+﻿<style>
+    @@font-face {
+        font-family: 'Cocon';
+        src: url('../../fonts/Cocon-Regular-Font.otf');
+    }
+
+    @@font-face {
+        font-family: 'Nunito';
+        src: url('../../fonts/Nunito-VariableFont_wght.ttf');
+    }
+
+    .cocon {
+        font-family: 'Cocon';
+    }
+
+    .nunito {
+        font-family: 'Nunito';
+    }
+
+    html, body {
+        height: 100%;
+        font-family: Nunito;
+    }
+
+    #external-events {
+        background: #f8f9fa;
+    }
+
+    /*.demo-topbar + #external-events {*/ /* will get stripped out */
+        /*top: 60px;
+    }
+
+    #external-events .fc-event {
+        cursor: move;
+        margin: 3px 0;
+    }
+
+    #calendar-container {
+        position: relative;
+        z-index: 1;
+        margin-left: 500px;
+    }*/
+
+    #calendar {
+        max-width: 1100px;
+        margin: 20px auto;
+    }
+
+    i {
+        cursor: pointer;
+    }
+
+    .fc-h-event {
+        cursor: pointer;
+        height: 50px;
+        line-height: 50px;
+    }
+
+    .event_closed {
+        background: lightgray;
+        padding-left: 5px;
+        border: none;
+    }
+
+        .event_closed .fc-sticky {
+            color: black;
+        }
+
+    .event_normal {
+        padding-left: 5px;
+    }
+
+    .event_closed_loss {
+        background: red;
+        padding-left: 5px;
+        border: none;
+    }
+
+    .event_closed_pass {
+        background: green;
+        padding-left: 5px;
+        border: none;
+    }
+</style>

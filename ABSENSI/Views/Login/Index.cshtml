@@ -1,0 +1,119 @@
+﻿@model ABSENSI.Models.User
+
+
+@{
+    ViewBag.Title = "Login";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container h-100">
+    <div class="d-flex flex-row justify-content-center h-100">
+        <div class="d-flex flex-column align-self-center w-75">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex row card-text">
+                        <div class="d-flex flex-row justify-content-evenly">
+                            <img src="~/Images/loginBanner.jpg" alt="login banner" id="loginBanner" />
+                            <div class="pt-5">
+                                <h1 class="cocon mb-5 mt-5 text-center">Member Login</h1>
+                                @*<form class="row needs-validation" action="checkLogin" method="post" novalidate>
+                                        <div class="col-md-12 mb-3">
+                                            @Html.AntiForgeryToken()
+                                            <label for="validationUsername" class="form-label">Username</label>
+                                            <input type="text" name="username" class="form-control" id="validationUsername" required>
+                                            <div class="valid-feedback">
+                                                Looks good!
+                                            </div>
+                                            <div class="invalid-feedback">
+                                                Please input username!
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 mb-4">
+                                            <label for="validationPassword" class="form-label">Password</label>
+                                            <input type="text" name="password" class="form-control" id="validationPassword" required>
+                                            <div class="valid-feedback">
+                                                Looks good!
+                                            </div>
+                                            <div class="invalid-feedback">
+                                                Please input password!
+                                            </div>
+                                        </div>
+                                        <div class="d-grid col-12 mx-auto">
+                                            <button class="btn btn-success" type="submit">Login</button>
+                                        </div>
+                                    </form>*@
+                                @using (Html.BeginForm("checkLogin", "Login",
+                                new { ReturnUrl = ViewBag.ReturnUrl },
+                                FormMethod.Post, new { @class = "row needs-validation", @novalidate = "true" }))
+                                {
+                                    <div class="col-md-12 mb-3">
+                                        @Html.AntiForgeryToken()
+                                        @Html.LabelFor(model => model.username, "Username", htmlAttributes: new { @class = "form-label" })
+                                        @Html.EditorFor(model => model.username, new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+                                        @*@Html.ValidationMessageFor(model => model.username, "", new { @class = "text-danger" })*@
+                                        @*<div class="valid-feedback">
+                                            Looks good!
+                                        </div>*@
+                                        <div class="invalid-feedback">
+                                            Please input username!
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 mb-4">
+                                        <label for="validationPassword" class="form-label">Password</label>
+                                        @*<input type="text" name="password" class="form-control" id="validationPassword" required>*@
+                                        @Html.PasswordFor(model => model.password, new { @class = "form-control", @required = "required" })
+                                        @*<div class="valid-feedback">
+                                            Looks good!
+                                        </div>*@
+                                        <div class="invalid-feedback">
+                                            Please input password!
+                                        </div>
+                                    </div>
+                                    <div class="d-grid col-12 mx-auto">
+                                        <button class="btn btn-success" type="submit">Login</button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+@section Scripts{
+    <script>
+        // Example starter JavaScript for disabling form submissions if there are invalid fields
+        (function () {
+            'use strict'
+
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
+
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+
+        let message = '@TempData["message"]';
+        if (message != "") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Login Failed',
+                text: message
+            })
+        }
+    </script>
+}
