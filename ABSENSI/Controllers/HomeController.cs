@@ -42,7 +42,7 @@ namespace ABSENSI.Controllers
                 userList = userList
             };
 
-            return View(userViewModel);
+            return View("Home",userViewModel);
         }
 
         public ActionResult About()

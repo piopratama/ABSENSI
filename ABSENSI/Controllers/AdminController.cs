@@ -38,7 +38,7 @@ namespace ABSENSI.Controllers
                 userList = userList
             };
 
-            return View(userViewModel);
+            return View("Admin",userViewModel);
         }
 
         [HttpPost]

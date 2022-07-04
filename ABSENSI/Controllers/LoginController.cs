@@ -18,7 +18,7 @@ namespace ABSENSI.Controllers
             ViewBag.header = "header";
             ViewBag.footer = "footer";
             ViewBag.customCss = "customCss";
-            return View();
+            return View("Login");
         }
 
         [HttpPost]
