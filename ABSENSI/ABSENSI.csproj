@@ -241,8 +241,8 @@
     <Content Include="fonts\fontawesome-webfont.eot" />
     <Content Include="fonts\Cocon-Regular-Font.otf" />
     <Content Include="fonts\Nunito-VariableFont_wght.ttf" />
-    <Content Include="Cstring.Debug.config" />
-    <Content Include="Cstring.Release.config" />
+    <Content Include="CString.Debug.config" />
+    <Content Include="CString.Release.config" />
     <None Include="Properties\PublishProfiles\Default Settings.pubxml" />
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />
