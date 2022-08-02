@@ -138,19 +138,24 @@ namespace ABSENSI.Controllers
             && b.schedule_start<=DateTime.UtcNow && b.schedule_end>=DateTime.UtcNow);
             if (result != null)
             {
-                if (!String.IsNullOrWhiteSpace(collection.userSchedule.lat) && !String.IsNullOrWhiteSpace(collection.userSchedule.lng))
-                {
-                    result.lat = collection.userSchedule.lat;
-                    result.lng = collection.userSchedule.lng;
-                    result.attendance = true;
-                    result.updated_at = DateTime.UtcNow;
-                    context.SaveChanges();
-                }
-                else
-                {
-                    TempData["message"] = "Failed to submit because position is not found";
-                }
-            }
+                //if (!String.IsNullOrWhiteSpace(collection.userSchedule.lat) && !String.IsNullOrWhiteSpace(collection.userSchedule.lng))
+                //{
+                //    result.lat = collection.userSchedule.lat;
+                //    result.lng = collection.userSchedule.lng;
+                //    result.attendance = true;
+                //    result.updated_at = DateTime.UtcNow;
+                //    context.SaveChanges();
+                //}
+                //else
+                //{
+                //    TempData["message"] = "Failed to submit because position is not found";
+                //}
+                result.lat = collection.userSchedule.lat;
+                result.lng = collection.userSchedule.lng;
+                result.attendance = true;
+                result.updated_at = DateTime.UtcNow;
+                context.SaveChanges();
+      }
             else
             {
                 TempData["message"] = "Failed to submit because the datetime is out of the allowed range";
