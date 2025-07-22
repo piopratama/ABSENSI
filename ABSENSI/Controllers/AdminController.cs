@@ -243,12 +243,13 @@ namespace ABSENSI.Controllers
                 Sheet.Cells[string.Format("A{0}", row)].Value = u.fullname;
                 Sheet.Cells[string.Format("B{0}", row)].Value = (u.attendance == true ? "Hadir" : "Alfa");
 
+                string location = string.Empty;
                 if (!String.IsNullOrEmpty(u.lat) && !String.IsNullOrEmpty(u.lng))
                 {
-                    RetrieveFormatedAddress(u.lat, u.lng);
+                    location = RetrieveFormatedAddress(u.lat, u.lng);
                 }
 
-                Sheet.Cells[string.Format("C{0}", row)].Value = "";
+                Sheet.Cells[string.Format("C{0}", row)].Value = location;
 
                 row++;
             }
@@ -269,19 +270,19 @@ namespace ABSENSI.Controllers
             Sheet.Cells["A:AZ"].AutoFitColumns();
             Response.Clear();
             Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            Response.AddHeader("content-disposition", "attachment: filename=" + "Report.xlsx");
+            Response.AddHeader("content-disposition", "attachment; filename=" + "Report.xlsx");
             Response.BinaryWrite(Ep.GetAsByteArray());
             Response.End();
 
             return Content("");
         }
 
-        public static void RetrieveFormatedAddress(string lat, string lng)
+        public static string RetrieveFormatedAddress(string lat, string lng)
         {
             string baseUri = "http://maps.googleapis.com/maps/api/geocode/xml?latlng={0},{1}&sensor=false";
 
-            string location = string.Empty;
             string requestUri = string.Format(baseUri, lat, lng);
+            string location = string.Empty;
 
             using (WebClient wc = new WebClient())
             {
@@ -295,9 +296,11 @@ namespace ABSENSI.Controllers
                     var res = (from elm in xmlElm.Descendants()
                                where elm.Name == "formatted_address"
                                select elm).FirstOrDefault();
-                    requestUri = res.Value;
+                    location = res.Value;
                 }
             }
+
+            return location;
         }
     }
 }
